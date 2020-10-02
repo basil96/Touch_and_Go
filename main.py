@@ -30,12 +30,9 @@ dot = adafruit_dotstar.DotStar(board.APA102_SCK, board.APA102_MOSI, 1, brightnes
 led = DigitalInOut(board.D13)
 led.direction = Direction.OUTPUT
 
-# Capacitive touch sensor on pin D3
-touch = touchio.TouchIn(board.D3)
-while (touch.raw_value > 3000):  # if pin is touched: wait (finger on the pin at boot-up for USB access)
-    time.sleep(0.1)
-touch.deinit()  # as soon as pin is not touched de-initialize and
-touch = touchio.TouchIn(board.D3)  # restart, otherwise the threshold value will be too high and touch.value won't work
+# Pushbutton switch on pin D3, active low
+touch = DigitalInOut(board.D3)
+touch.switch_to_input(Pull.UP)
 
 # Servo signal output on pin D4
 servo_pwm = pulseio.PWMOut(board.D4, frequency=50)
@@ -43,6 +40,8 @@ servo = servo.Servo(servo_pwm)
 servo.fraction = 0  # set idle throttle ASAP in case ESC is looking for a signal
 
 # Create some helper functions:
+def get_touch(switch):
+    return not switch.value
 
 def dot_update(color, flash_interval):  # used to control the color and flash rate of the built in dotstar LED
     global now
@@ -149,30 +148,30 @@ except OSError:
 # Main Loop
 
 while True:
-    led.value = touch.value  # link built-in red LED to touch pin
+    led.value = get_touch(touch)  # link built-in red LED to touch pin
     now = time.monotonic()  # update current time
     main_count = 0  # clear previous short touch count
     
 # each time through the main loop, the following will test the touch pin for # of short touches or if a long touch has been entered
     
-    if (touch.value and not previous_touch):  # at the start of any touch
+    if (get_touch(touch) and not previous_touch):  # at the start of any touch
         touch_time = now
         time.sleep(.02)  # add a tiny amount of debounce
         counter += 1
         previous_touch = True
     
-    if (not touch.value and previous_touch):  # at the end of any touch
+    if (not get_touch(touch) and previous_touch):  # at the end of any touch
         previous_touch = False
         if (long_touch):  # except long touches, don't count long touches
             counter = 0
             long_touch = False
             end_of_long_touch = True  # set flag
     
-    if (now - touch_time > 1 and counter > 0 and not touch.value):  # delay before updating short touch count
+    if (now - touch_time > 1 and counter > 0 and not get_touch(touch)):  # delay before updating short touch count
         main_count = counter  # indicator that short count is complete
         counter = 0
     
-    if (now - touch_time > 3 and touch.value and previous_touch):  # after holding a touch for 3 seconds
+    if (now - touch_time > 3 and get_touch(touch) and previous_touch):  # after holding a touch for 3 seconds
         long_touch = True
     
 # Timer program code
@@ -214,7 +213,7 @@ while True:
         program_select()  # number of touches will determine where to go next
     
     if (mode == "program_rpm"):  # entered from any other program mode
-        if (now - touch_time > 0.2 and touch.value):  # at the start of the next long touch
+        if (now - touch_time > 0.2 and get_touch(touch)):  # at the start of the next long touch
             dot_update(MAGENTA, 0.05)  # flash quickly to warn of impending motor stat-up
         else:
             dot_update(MAGENTA, 0)
@@ -251,7 +250,7 @@ while True:
             mode = "program_rpm"  # exit to the beginning of the program RPM mode
     
     if (mode == "delay"):  # mode to count down the time of the delayed start
-        if (end_of_long_touch and touch.value):  # after the long touch used to enter this mode is over, any touch while in delay mode will abort and return to standby
+        if (end_of_long_touch and get_touch(touch)):  # after the long touch used to enter this mode is over, any touch while in delay mode will abort and return to standby
             mode = "standby"
             end_of_long_touch = False  # reset flag
             print(mode)
@@ -268,7 +267,7 @@ while True:
     
     if (mode == "take-off"):  # mode to slowly ramp up the RPM for a smooth take-off
         dot_update(RED, 1)
-        if (touch.value):  # any touch will kill the motor and end the flight
+        if (get_touch(touch)):  # any touch will kill the motor and end the flight
             mode = "flight_complete"
             print(mode)
         if (servo.fraction < rpm_fraction):  # ramp up RPM from idle to flight RPM
@@ -282,7 +281,7 @@ while True:
     
     if (mode == "flight"):  # mode to time the lenght of flight
         dot_update(RED, 1)
-        if (touch.value):  # any touch will kill the motor and end the flight
+        if (get_touch(touch)):  # any touch will kill the motor and end the flight
             mode = "flight_complete"
             print(mode)
         if (flight_time > 17):  # voltage compensation kicks in at 3 minute flight times and above
@@ -300,7 +299,7 @@ while True:
     
     if (mode == "landing"):  # used to slowly decrease the RPM for a smooth landing
         dot_update(RED, 0.25)
-        if (touch.value):  # any touch will kill the motor and end the flight
+        if (get_touch(touch)):  # any touch will kill the motor and end the flight
             mode = "flight_complete"
             print(mode)
         if (servo.fraction > 0.22):  # ramp down the RPM from flight RPM to idle

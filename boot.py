@@ -1,18 +1,23 @@
 import board
 import storage
-import touchio
+# import touchio
+from digitalio import DigitalInOut, Direction, Pull
 
 USB_access = False
 
-# Capacitive touch on D3
-touch = touchio.TouchIn(board.D3)
+# Pushbutton switch on D3
+switch = DigitalInOut(board.D3)
+switch.direction = Direction.INPUT
+switch.pull = Pull.UP
 
-# Test printing to Boot.txt
-if (touch.raw_value > 3000):
-    print("Pin Touched", end="\t")
+if not switch.value:
+    print('Switch pressed on boot')
     USB_access = not USB_access
-print("A2 touch: %d" % touch.raw_value, end="\t")
+else:
+    print('Switch NOT pressed on boot')
 
-# If the touch pin is touched during boot-up (USB_access = True) CircuitPython can write to the drive via USB (Mu, etc.)
-# If the touch pin is not touched during boot-up (USB_access = False) CircuitPython can write to the drive from program code
+
+print('USB_access = ', USB_access)
+# If the switch is pressed during boot-up (USB_access = True) CircuitPython can write to the drive via USB (Mu, etc.)
+# If the switch is not pressed during boot-up (USB_access = False) CircuitPython can write to the drive from program code
 storage.remount("/", USB_access)
