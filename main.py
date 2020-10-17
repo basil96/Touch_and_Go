@@ -38,7 +38,6 @@ touch.switch_to_input(Pull.UP)
 
 
 def get_touch(switch):
-    '''Return state of the user pushbutton.'''
     # NOTE: active low means switch.value is False when pressed and vice versa.
     return not switch.value
 
