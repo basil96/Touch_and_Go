@@ -7,10 +7,10 @@
 #  electric powered control line model aircraft.
 
 # Board: Adafruit QT Py https://www.adafruit.com/product/4600
-# Firmware: Adafruit CircuitPython 6.0.0-beta.2 on 2020-10-05; Adafruit QT Py M0 with samd21e18
+# Firmware: Adafruit CircuitPython 6.2.0 on 2021-04-05; Adafruit QT Py M0 with samd21e18
 # Original Timer Program Version: 1.0, www.circuitflyer.com, https://github.com/CircuitFlyer/Touch_and_Go
 # Modified by AMV to use a pushbutton instead of captouch.
-# Version 2.0 at https://github.com/basil96/Touch_and_Go
+# Version 2.1 at https://github.com/basil96/Touch_and_Go
 
 # Imports. Optimized to reduce runtime footprint
 from board import D9, D10, NEOPIXEL
