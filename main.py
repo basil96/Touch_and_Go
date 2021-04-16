@@ -38,6 +38,7 @@ touch.switch_to_input(Pull.UP)
 
 
 def get_touch(switch):
+    # Return state of the user pushbutton.
     # NOTE: active low means switch.value is False when pressed and vice versa.
     return not switch.value
 
@@ -108,16 +109,17 @@ counter = 0
 touch_time = 0
 long_touch = False
 end_of_long_touch = False
+# The following are white-balanced colors (except pure R/G/B)
 RED = (255, 0, 0)
-YELLOW = (200, 200, 0)
-ORANGE = (180, 100, 0)
+YELLOW = (220, 255, 0)
+ORANGE = (220, 100, 0)
 GREEN = (0, 255, 0)
 TEAL = (0, 255, 120)
-CYAN = (0, 255, 255)
+CYAN = (0, 200, 255)
 BLUE = (0, 0, 255)
-PURPLE = (210, 0, 255)
-MAGENTA = (255, 0, 100)
-WHITE = (255, 255, 255)
+PURPLE = (60, 0, 80)
+MAGENTA = (210, 0, 255)
+WHITE = (180, 220, 255)
 BLANK = (0, 0, 0)
 show = True
 done = False
@@ -154,6 +156,8 @@ except OSError:
 # Main Loop
 
 while True:
+    # This board does not have a separate LED apart from the neopixel,
+    # so we cannot use anything as immediate visual pushbutton feedback like on the original Trinket M0.
     now = monotonic()  # update current time
     main_count = 0  # clear previous short touch count
 
